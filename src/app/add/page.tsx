@@ -1,0 +1,237 @@
+"use client";
+import React, { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
+import { usePartnerStore, Partner } from "../store/usePartnerStore";
+import { FaClipboardCheck, FaEdit, FaTrash } from "react-icons/fa";
+
+const defaultIconColor = "#000000";
+
+const Add = () => {
+  const { partners, addPartner, deletePartner, fetchPartners } =
+    usePartnerStore();
+  const [name, setName] = useState("");
+  const [hourlyRate, setHourlyRate] = useState("");
+  const [color, setColor] = useState("#ffffff");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const params = useParams();
+  const id = params.id as string;
+
+  useEffect(() => {
+    fetchPartners();
+  }, [fetchPartners]);
+
+  useEffect(() => {
+    if (id) {
+      const partner = partners.find((p) => p.id === id);
+      if (partner) {
+        setName(partner.name);
+        setHourlyRate(partner.hourlyRate.toString());
+        setColor(partner.color);
+      }
+    }
+  }, [id, partners]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (name && hourlyRate) {
+      if (id) {
+        // updatePartner(id, {
+        //   name,
+        //   hourlyRate: parseFloat(hourlyRate),
+        //   color,
+        // });
+      } else {
+        await addPartner({
+          name,
+          hourlyRate: parseFloat(hourlyRate),
+          color,
+        });
+      }
+      setName("");
+      setHourlyRate("");
+      setColor("#ffffff");
+    }
+  };
+  // const handleEdit = (partner: Partner) => {
+  //   setEditingId(partner.id);
+  //   setName(partner.name);
+  //   setHourlyRate(partner.hourlyRate.toString());
+  //   setColor(partner.color);
+  // };
+
+  const handleDelete = (id: string) => {
+    deletePartner(id);
+    // setDeletingId(id);
+    // setShowDeleteModal(true);
+  };
+
+  // const confirmDelete = () => {
+  //   if (deletingId) {
+  //     deletePartner(deletingId);
+  //     setShowDeleteModal(false);
+  //     setDeletingId(null);
+  //   }
+  // };
+
+  return (
+    <>
+      <div className="text-center">
+        <h2 className="text-xl md:text-4xl text-black font-bold mb-12">
+          파트너 관리
+        </h2>
+      </div>
+      <div className="rounded-lg border bg-card text-card-foreground shadow-sm mb-4">
+        <div className="flex space-y-1.5 p-6 flex-row items-center justify-between">
+          <h3 className="text-2xl font-semibold leading-none tracking-tight">
+            새 파트너 추가
+          </h3>
+          <div className="flex items-center gap-2 relative">
+            <div className="relative w-10 h-10">
+              <input
+                type="color"
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+                className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+              />
+              <button
+                type="button"
+                className="w-10 h-10 rounded-md border border-gray-300 flex justify-center items-center cursor-pointer"
+                style={{ backgroundColor: color }}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="lucide lucide-palette h-4 w-4"
+                  style={{ color: "rgb(0, 0, 0)" }}
+                >
+                  <circle
+                    cx="13.5"
+                    cy="6.5"
+                    r=".5"
+                    fill="currentColor"
+                  ></circle>
+                  <circle
+                    cx="17.5"
+                    cy="10.5"
+                    r=".5"
+                    fill="currentColor"
+                  ></circle>
+                  <circle cx="8.5" cy="7.5" r=".5" fill="currentColor"></circle>
+                  <circle
+                    cx="6.5"
+                    cy="12.5"
+                    r=".5"
+                    fill="currentColor"
+                  ></circle>
+                  <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div className="p-6 pt-0">
+          <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+            <input
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              placeholder="이름"
+              name="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+            <div className="flex gap-2">
+              <input
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                placeholder="시간당 급여"
+                inputMode="numeric"
+                name="hourlyRate"
+                value={hourlyRate}
+                onChange={(e) => setHourlyRate(e.target.value)}
+              />
+            </div>
+            <div className="flex justify-between mt-2">
+              <button
+                className="text-white inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background bg-slate-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2"
+                type="submit"
+              >
+                {id ? "수정" : "추가"}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+      <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {partners.map((partner) => (
+          <div
+            key={partner.id}
+            className="flex flex-col gap-4 rounded-lg border p-4"
+          >
+            <div className="flex gap-3 justify-between">
+              <div className="flex gap-3 items-center">
+                <FaClipboardCheck
+                  size={30}
+                  color={
+                    partner.color !== "#ffffff"
+                      ? partner.color
+                      : defaultIconColor
+                  }
+                />
+                <h2 className="text-xl font-semibold">{partner.name}</h2>
+              </div>
+              <div>
+                {/* <button
+                  onClick={() => handleEdit(partner)}
+                  // className="mr-2 text-blue-500"
+                >
+                  <FaEdit />
+                </button> */}
+                <button
+                  onClick={() => handleDelete(partner.id)}
+                  // className="text-red-500"
+                >
+                  <FaTrash />
+                </button>
+              </div>
+            </div>
+            <div>
+              <p>시간당 급여: {partner.hourlyRate}원</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* 삭제 확인 모달 */}
+      {/* {showDeleteModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-4 rounded-lg">
+            <p>정말로 이 파트너를 삭제하시겠습니까?</p>
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="mr-2 px-4 py-2 bg-gray-200 rounded"
+              >
+                취소
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="px-4 py-2 bg-red-500 text-white rounded"
+              >
+                삭제
+              </button>
+            </div>
+          </div>
+        </div>
+      )} */}
+    </>
+  );
+};
+
+export default Add;
