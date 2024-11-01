@@ -28,15 +28,14 @@ import { Event } from "../store/useEventStore";
 
 const Schedule: React.FC = () => {
   const [calendar, setCalendar] = useState<Calendar | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  // const [isModalOpen, setIsModalOpen] = useState(false);
   // const [isEventDetailModalOpen, setIsEventDetailModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [eventTimeRange, setEventTimeRange] = useState("");
   const [selectedPartner, setSelectedPartner] = useState<string | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const { partners, fetchPartners } = usePartnerStore();
-  const { events, fetchEvents, addEvent, updateEvent, deleteEvent } =
-    useEventStore();
+  const { events, fetchEvents, addEvent, deleteEvent } = useEventStore();
   // const [events, setEvents] = useState<CustomEvent[]>([]);
   const [isAddEventModalOpen, setIsAddEventModalOpen] = useState(false);
   const [isEventDetailModalOpen, setIsEventDetailModalOpen] = useState(false);

@@ -24,7 +24,7 @@ export type CardStore = {
   cards: CardItem[];
 };
 
-export const useCardStore = create<CardStore>((set) => ({
+export const useCardStore = create<CardStore>(() => ({
   cards: [
     {
       icon: "FcCalendar",
