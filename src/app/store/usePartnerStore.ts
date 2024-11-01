@@ -1,6 +1,6 @@
 import { create } from "zustand";
 // import { v4 as uuidv4 } from "uuid";
-import { supabase } from "../utils/supabase";
+import { supabase } from "../lib/supabase";
 
 export interface Partner {
   id: string;
