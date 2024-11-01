@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import {
@@ -44,6 +44,24 @@ const Schedule: React.FC = () => {
     fetchPartners();
   }, [fetchEvents, fetchPartners]);
 
+  const handleDateSelect = useCallback((info: { startStr: string }) => {
+    setSelectedDate(info.startStr);
+    setIsAddEventModalOpen(true);
+  }, []);
+
+  const handleEventClick = useCallback((info: { event: EventApi }) => {
+    const customEvent: Event = {
+      id: info.event.id,
+      title: info.event.title,
+      start: info.event.startStr,
+      end: info.event.endStr,
+      partnerName: info.event.extendedProps.partnerName,
+      partnerColor: info.event.extendedProps.partnerColor,
+    };
+    setSelectedEvent(customEvent);
+    setIsEventDetailModalOpen(true);
+  }, []);
+
   useEffect(() => {
     const calendarEl = document.getElementById("calendar");
     if (calendarEl) {
@@ -51,23 +69,25 @@ const Schedule: React.FC = () => {
         plugins: [dayGridPlugin, interactionPlugin],
         initialView: "dayGridMonth",
         selectable: true,
-        select: (info) => {
-          setSelectedDate(info.startStr);
-          setIsAddEventModalOpen(true);
-        },
+        select: handleDateSelect,
+        // select: (info) => {
+        //   setSelectedDate(info.startStr);
+        //   setIsAddEventModalOpen(true);
+        // },
         events: events as EventInput[],
-        eventClick: (info: { event: EventApi }) => {
-          const customEvent: Event = {
-            id: info.event.id,
-            title: info.event.title,
-            start: info.event.startStr,
-            end: info.event.endStr,
-            partnerName: info.event.extendedProps.partnerName,
-            partnerColor: info.event.extendedProps.partnerColor,
-          };
-          setSelectedEvent(customEvent);
-          setIsEventDetailModalOpen(true);
-        },
+        eventClick: handleEventClick,
+        // eventClick: (info: { event: EventApi }) => {
+        //   const customEvent: Event = {
+        //     id: info.event.id,
+        //     title: info.event.title,
+        //     start: info.event.startStr,
+        //     end: info.event.endStr,
+        //     partnerName: info.event.extendedProps.partnerName,
+        //     partnerColor: info.event.extendedProps.partnerColor,
+        //   };
+        //   setSelectedEvent(customEvent);
+        //   setIsEventDetailModalOpen(true);
+        // },
         // eventClick: (info) => {
         //   setSelectedEvent(info.event);
         //   setIsModalOpen(true);
