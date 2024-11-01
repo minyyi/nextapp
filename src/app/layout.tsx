@@ -4,8 +4,8 @@ import "./global.css";
 import Appbar from "../app/layout/Appbar";
 import Footer from "../app/layout/Footer";
 
-import Link from "next/link";
-import { Control } from "./Control";
+// import Link from "next/link";
+// import { Control } from "./Control";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -26,10 +26,10 @@ export const metadata: Metadata = {
   },
 };
 
-interface Topic {
-  id: number;
-  title: string;
-}
+// interface Topic {
+//   id: number;
+//   title: string;
+// }
 
 export default async function RootLayout({
   children,

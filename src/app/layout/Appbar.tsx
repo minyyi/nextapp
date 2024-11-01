@@ -4,7 +4,7 @@ import Link from "next/link";
 import { supabase } from "../lib/supabase";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
+// import Image from "next/image";
 
 const Appbar = () => {
   const cards = useCardStore((state: any) => state.cards);

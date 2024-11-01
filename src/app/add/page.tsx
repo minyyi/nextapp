@@ -1,8 +1,8 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { usePartnerStore, Partner } from "../store/usePartnerStore";
-import { FaClipboardCheck, FaEdit, FaTrash } from "react-icons/fa";
+import { usePartnerStore } from "../store/usePartnerStore";
+import { FaClipboardCheck, FaTrash } from "react-icons/fa";
 
 const defaultIconColor = "#000000";
 
@@ -12,9 +12,9 @@ const Add = () => {
   const [name, setName] = useState("");
   const [hourlyRate, setHourlyRate] = useState("");
   const [color, setColor] = useState("#ffffff");
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  // const [editingId, setEditingId] = useState<string | null>(null);
+  // const [showDeleteModal, setShowDeleteModal] = useState(false);
+  // const [deletingId, setDeletingId] = useState<string | null>(null);
   const params = useParams();
   const id = params.id as string;
 
