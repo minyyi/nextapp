@@ -13,14 +13,14 @@ const Appbar = () => {
 
   useEffect(() => {
     // 현재 세션 체크
-    const getSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      setUser(session?.user || null);
-    };
+    // const getSession = async () => {
+    //   const {
+    //     data: { session },
+    //   } = await supabase.auth.getSession();
+    //   setUser(session?.user || null);
+    // };
 
-    getSession();
+    // getSession();
 
     // 인증 상태 변경 감지
     const {
@@ -38,6 +38,10 @@ const Appbar = () => {
         provider: "google",
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            prompt: "select_account", // 이 옵션으로 매번 계정 선택 창이 뜹니다
+            // access_type: 'offline' // 필요한 경우 추가
+          },
         },
       });
       if (error) throw error;

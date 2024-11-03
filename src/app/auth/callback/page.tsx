@@ -15,6 +15,7 @@ export default function AuthCallback() {
         const {
           data: { session },
         } = await supabase.auth.getSession();
+        console.log(session);
         if (session && redirectPath) {
           router.push(redirectPath);
         } else {

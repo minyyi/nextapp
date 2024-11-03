@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "./global.css";
 import Appbar from "../app/layout/Appbar";
 import Footer from "../app/layout/Footer";
+import GoogleAnalytics from "./component/GoogleAnalitics";
 
 // import Link from "next/link";
 // import { Control } from "./Control";
@@ -41,6 +42,7 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        {process.env.NODE_ENV === "production" && <GoogleAnalytics />}
         <div className="min-h-screen flex flex-col">
           <Appbar />
           <div className="flex-grow bg-white mx-8">
