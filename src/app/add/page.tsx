@@ -1,22 +1,55 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { useParams } from "next/navigation";
 import { usePartnerStore } from "../store/usePartnerStore";
 import { FaClipboardCheck, FaTrash } from "react-icons/fa";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import type { Partner } from "../store/usePartnerStore";
 
 const defaultIconColor = "#000000";
+
+const partnerFormSchema = z.object({
+  name: z
+    .string()
+    .min(1, { message: "이름을 입력해주세요" })
+    .max(50, { message: "이름이 너무 깁니다" }),
+  hourlyRate: z
+    .string()
+    .min(1, { message: "시급을 입력해주세요" })
+    .refine((val) => !isNaN(Number(val)), {
+      message: "숫자만 입력 가능합니다",
+    }),
+  color: z.string().default("#ffffff"),
+});
+
+type PartnerFormData = z.infer<typeof partnerFormSchema>;
 
 const Add = () => {
   const { partners, addPartner, deletePartner, fetchPartners } =
     usePartnerStore();
-  const [name, setName] = useState("");
-  const [hourlyRate, setHourlyRate] = useState("");
-  const [color, setColor] = useState("#ffffff");
-  // const [editingId, setEditingId] = useState<string | null>(null);
-  // const [showDeleteModal, setShowDeleteModal] = useState(false);
-  // const [deletingId, setDeletingId] = useState<string | null>(null);
   const params = useParams();
   const id = params.id as string;
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm<PartnerFormData>({
+    resolver: zodResolver(partnerFormSchema),
+    defaultValues: {
+      name: "",
+      hourlyRate: "",
+      color: "#ffffff",
+    },
+  });
+
+  // 현재 선택된 색상 값을 실시간으로 감시
+  const selectedColor = watch("color");
 
   useEffect(() => {
     fetchPartners();
@@ -26,54 +59,31 @@ const Add = () => {
     if (id) {
       const partner = partners.find((p) => p.id === id);
       if (partner) {
-        setName(partner.name);
-        setHourlyRate(partner.hourlyRate.toString());
-        setColor(partner.color);
+        setValue("name", partner.name);
+        setValue("hourlyRate", partner.hourlyRate.toString());
+        setValue("color", partner.color);
       }
     }
-  }, [id, partners]);
+  }, [id, partners, setValue]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (name && hourlyRate) {
-      if (id) {
-        // updatePartner(id, {
-        //   name,
-        //   hourlyRate: parseFloat(hourlyRate),
-        //   color,
-        // });
-      } else {
-        await addPartner({
-          name,
-          hourlyRate: parseFloat(hourlyRate),
-          color,
-        });
-      }
-      setName("");
-      setHourlyRate("");
-      setColor("#ffffff");
+  const onSubmit = async (data: PartnerFormData) => {
+    const partnerData: Omit<Partner, "id"> = {
+      name: data.name,
+      hourlyRate: parseFloat(data.hourlyRate),
+      color: data.color,
+    };
+
+    if (id) {
+      // updatePartner 로직이 추가되면 여기에 구현
+    } else {
+      await addPartner(partnerData);
     }
+    reset();
   };
-  // const handleEdit = (partner: Partner) => {
-  //   setEditingId(partner.id);
-  //   setName(partner.name);
-  //   setHourlyRate(partner.hourlyRate.toString());
-  //   setColor(partner.color);
-  // };
 
   const handleDelete = (id: string) => {
     deletePartner(id);
-    // setDeletingId(id);
-    // setShowDeleteModal(true);
   };
-
-  // const confirmDelete = () => {
-  //   if (deletingId) {
-  //     deletePartner(deletingId);
-  //     setShowDeleteModal(false);
-  //     setDeletingId(null);
-  //   }
-  // };
 
   return (
     <>
@@ -91,14 +101,13 @@ const Add = () => {
             <div className="relative w-10 h-10">
               <input
                 type="color"
-                value={color}
-                onChange={(e) => setColor(e.target.value)}
+                {...register("color")}
                 className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
               />
               <button
                 type="button"
                 className="w-10 h-10 rounded-md border border-gray-300 flex justify-center items-center cursor-pointer"
-                style={{ backgroundColor: color }}
+                style={{ backgroundColor: selectedColor }}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -139,23 +148,34 @@ const Add = () => {
           </div>
         </div>
         <div className="p-6 pt-0">
-          <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-            <input
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              placeholder="이름"
-              name="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-            <div className="flex gap-2">
+          <form
+            className="flex flex-col gap-4"
+            onSubmit={handleSubmit(onSubmit)}
+          >
+            <div>
+              <input
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                placeholder="이름"
+                {...register("name")}
+              />
+              {errors.name && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.name.message}
+                </p>
+              )}
+            </div>
+            <div>
               <input
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 placeholder="시간당 급여"
                 inputMode="numeric"
-                name="hourlyRate"
-                value={hourlyRate}
-                onChange={(e) => setHourlyRate(e.target.value)}
+                {...register("hourlyRate")}
               />
+              {errors.hourlyRate && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.hourlyRate.message}
+                </p>
+              )}
             </div>
             <div className="flex justify-between mt-2">
               <button
@@ -187,16 +207,7 @@ const Add = () => {
                 <h2 className="text-xl font-semibold">{partner.name}</h2>
               </div>
               <div>
-                {/* <button
-                  onClick={() => handleEdit(partner)}
-                  // className="mr-2 text-blue-500"
-                >
-                  <FaEdit />
-                </button> */}
-                <button
-                  onClick={() => handleDelete(partner.id)}
-                  // className="text-red-500"
-                >
+                <button onClick={() => handleDelete(partner.id)}>
                   <FaTrash />
                 </button>
               </div>
@@ -207,29 +218,6 @@ const Add = () => {
           </div>
         ))}
       </div>
-
-      {/* 삭제 확인 모달 */}
-      {/* {showDeleteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-4 rounded-lg">
-            <p>정말로 이 파트너를 삭제하시겠습니까?</p>
-            <div className="mt-4 flex justify-end">
-              <button
-                onClick={() => setShowDeleteModal(false)}
-                className="mr-2 px-4 py-2 bg-gray-200 rounded"
-              >
-                취소
-              </button>
-              <button
-                onClick={confirmDelete}
-                className="px-4 py-2 bg-red-500 text-white rounded"
-              >
-                삭제
-              </button>
-            </div>
-          </div>
-        </div>
-      )} */}
     </>
   );
 };

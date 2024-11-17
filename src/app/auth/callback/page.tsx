@@ -33,7 +33,8 @@ export default function AuthCallback() {
   return (
     <div className="flex items-center justify-center min-h-screen">
       <div className="text-center">
-        <p className="text-lg">로그인 처리 중...</p>
+        <p className="text-xl"> 잠시만 기다려 주세요.</p>
+        <p className="text-xl"> 로그인 처리 중...</p>
       </div>
     </div>
   );

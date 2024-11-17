@@ -6,10 +6,9 @@ export interface Event {
   title: string;
   start: string;
   end: string;
-  //   extendedProps: {
   partnerName: string;
   partnerColor: string;
-  //   };
+  user_id?: string;
 }
 
 interface EventStore {
@@ -23,7 +22,22 @@ interface EventStore {
 export const useEventStore = create<EventStore>((set) => ({
   events: [],
   fetchEvents: async () => {
-    const { data, error } = await supabase.from("events").select("*");
+    // Get current user
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const user_id = session?.user?.id;
+
+    if (!user_id) {
+      console.error("No user logged in");
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("events")
+      .select("*")
+      .eq("user_id", user_id); // Filter by user_id
+
     if (error) {
       console.error("Error fetching events:", error);
     } else {
@@ -33,40 +47,94 @@ export const useEventStore = create<EventStore>((set) => ({
           title: event.title,
           start: event.start,
           end: event.end,
-          //   extendedProps: {
           partnerName: event.partnerName,
           partnerColor: event.partnerColor,
-          //   },
+          user_id: event.user_id,
         })) || [];
       set({ events: formattedEvents });
-      //   set({ events: data || [] });
     }
   },
   addEvent: async (event: Omit<Event, "id">) => {
-    const { data, error } = await supabase
-      .from("events")
-      .insert([event])
-      .select();
-    if (error) {
-      console.error("Error adding event:", error);
+    // 세션 확인 로그
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    console.log("Current session:", session); // 세션 정보 확인
+
+    const user_id = session?.user?.id;
+    console.log("User ID:", user_id); // 사용자 ID 확인
+
+    if (!user_id) {
+      console.error("No user logged in");
+      return;
+    }
+
+    try {
+      // 이벤트 데이터에 user_id 추가
+      const eventWithUserId = {
+        ...event,
+        user_id,
+      };
+
+      console.log("Attempting to insert event with data:", eventWithUserId); // 삽입할 데이터 확인
+
+      const { data, error } = await supabase
+        .from("events")
+        .insert([eventWithUserId])
+        .select();
+
+      if (error) {
+        console.error("Error adding event:", error);
+        throw error;
+      } else if (data) {
+        console.log("Successfully inserted event:", data); // 성공적으로 삽입된 데이터 확인
+        set((state) => ({ events: [...state.events, data[0] as Event] }));
+      }
+    } catch (error) {
+      console.error("Error in addEvent:", error);
       throw error;
-    } else if (data) {
-      set((state) => ({ events: [...state.events, data[0] as Event] }));
     }
   },
-  //   addEvent: async (event) => {
-  //     const { data, error } = await supabase
-  //       .from("events")
-  //       .insert([event])
-  //       .select();
-  //     if (error) {
-  //       console.error("Error adding event:", error);
-  //     } else if (data) {
-  //       set((state) => ({ events: [...state.events, data[0]] }));
-  //     }
-  //   },
+  // addEvent: async (event: Omit<Event, "id">) => {
+  //   const {
+  //     data: { session },
+  //   } = await supabase.auth.getSession();
+  //   const user_id = session?.user?.id;
+
+  //   if (!user_id) {
+  //     console.error("No user logged in");
+  //     return;
+  //   }
+
+  //   const { data, error } = await supabase
+  //     .from("events")
+  //     .insert([{ ...event, user_id }])
+  //     .select();
+
+  //   if (error) {
+  //     console.error("Error adding event:", error);
+  //     throw error;
+  //   } else if (data) {
+  //     set((state) => ({ events: [...state.events, data[0] as Event] }));
+  //   }
+  // },
   updateEvent: async (id, event) => {
-    const { error } = await supabase.from("events").update(event).eq("id", id);
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const user_id = session?.user?.id;
+
+    if (!user_id) {
+      console.error("No user logged in");
+      return;
+    }
+
+    const { error } = await supabase
+      .from("events")
+      .update(event)
+      .eq("id", id)
+      .eq("user_id", user_id); // Ensure user owns this event
+
     if (error) {
       console.error("Error updating event:", error);
     } else {
@@ -76,7 +144,22 @@ export const useEventStore = create<EventStore>((set) => ({
     }
   },
   deleteEvent: async (id) => {
-    const { error } = await supabase.from("events").delete().eq("id", id);
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const user_id = session?.user?.id;
+
+    if (!user_id) {
+      console.error("No user logged in");
+      return;
+    }
+
+    const { error } = await supabase
+      .from("events")
+      .delete()
+      .eq("id", id)
+      .eq("user_id", user_id); // Ensure user owns this event
+
     if (error) {
       console.error("Error deleting event:", error);
     } else {
