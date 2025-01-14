@@ -14,6 +14,7 @@ import {
   YAxis,
   Tooltip,
 } from "recharts";
+import { usePartnerStore } from "../store/usePartnerStore";
 
 interface Event {
   id: string;
@@ -34,9 +35,11 @@ interface StatsData {
   name: string;
   totalSchedules: number;
   totalHours: number;
+  totalAmount: number;
 }
 
 const PartnerStatsChart = ({ events }: Props) => {
+  const { partners } = usePartnerStore();
   const [selectedMonth, setSelectedMonth] = useState<string>(
     new Date().toLocaleString("ko-KR", { month: "long" })
   );
@@ -64,11 +67,14 @@ const PartnerStatsChart = ({ events }: Props) => {
   const chartData = Object.values(
     filteredEvents.reduce((acc, event) => {
       const name = event.partnerName;
+      const partner = partners.find((p) => p.name === event.partnerName);
+      const hourlyRate = partner?.hourlyRate || 0;
       if (!acc[name]) {
         acc[name] = {
           name,
           totalSchedules: 0,
           totalHours: 0,
+          totalAmount: 0,
           color: event.partnerColor,
         };
       }
@@ -78,7 +84,7 @@ const PartnerStatsChart = ({ events }: Props) => {
       const end = new Date(event.end);
       const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
       acc[name].totalHours += Number(hours.toFixed(1));
-
+      acc[name].totalAmount += Number((hours * hourlyRate).toFixed(0));
       return acc;
     }, {} as Record<string, StatsData>)
   );
@@ -89,8 +95,17 @@ const PartnerStatsChart = ({ events }: Props) => {
         <div className="flex justify-between items-center p-4">
           <div>
             <CardDescription className="text-lg">
-              파트너별 일정 수와 총 시간
+              파트너별 총 시간과 금액
             </CardDescription>
+          </div>
+          <div className="text-right">
+            <div className="text-lg font-semibold">총 금액</div>
+            <div className="text-xl text-red-500">
+              {chartData
+                .reduce((sum, data) => sum + (data.totalAmount || 0), 0)
+                .toLocaleString()}
+              원
+            </div>
           </div>
           <select
             value={selectedMonth}
@@ -117,7 +132,21 @@ const PartnerStatsChart = ({ events }: Props) => {
                 tick={{ fill: "#666666" }}
                 tickLine={{ stroke: "#666666" }}
               />
-              <YAxis
+              {/* <Tooltip
+                contentStyle={{
+                  backgroundColor: "rgba(255, 255, 255, 0.9)",
+                  border: "1px solid #ccc",
+                  borderRadius: "4px",
+                  padding: "10px",
+                }}
+                formatter={(value, name) => {
+                  if (name === "총 금액(원)") {
+                    return [`${value.toLocaleString()}원`, name];
+                  }
+                  return [value, name];
+                }}
+              /> */}
+              {/* <YAxis
                 yAxisId="left"
                 label={{
                   value: "일정 수",
@@ -127,16 +156,29 @@ const PartnerStatsChart = ({ events }: Props) => {
                 }}
                 tick={{ fill: "#666666" }}
                 tickLine={{ stroke: "#666666" }}
+              /> */}
+              <YAxis
+                yAxisId="left"
+                // orientation="right"
+                label={{
+                  value: "총 시간(시간)",
+                  angle: -90,
+                  position: "insideLeft",
+                  fill: "#84cc16",
+                }}
+                tick={{ fill: "#666666" }}
+                tickLine={{ stroke: "#666666" }}
               />
               <YAxis
                 yAxisId="right"
                 orientation="right"
                 label={{
-                  value: "총 시간(시간)",
+                  value: "총 금액(원)",
                   angle: 90,
                   position: "insideRight",
-                  fill: "#84cc16",
+                  fill: "#ef4444",
                 }}
+                tickFormatter={(value) => value.toLocaleString()}
                 tick={{ fill: "#666666" }}
                 tickLine={{ stroke: "#666666" }}
               />
@@ -147,19 +189,32 @@ const PartnerStatsChart = ({ events }: Props) => {
                   borderRadius: "4px",
                   padding: "10px",
                 }}
+                formatter={(value, name) => {
+                  if (name === "총 금액(원)") {
+                    return [`${value.toLocaleString()}원`, name];
+                  }
+                  return [value, name];
+                }}
               />
-              <Bar
+              {/* <Bar
                 yAxisId="left"
                 dataKey="totalSchedules"
                 fill="#4f46e5"
                 name="일정 수"
                 radius={[4, 4, 0, 0]}
-              />
+              /> */}
               <Bar
-                yAxisId="right"
+                yAxisId="left"
                 dataKey="totalHours"
                 fill="#84cc16"
                 name="총 시간(시간)"
+                radius={[4, 4, 0, 0]}
+              />
+              <Bar
+                yAxisId="right"
+                dataKey="totalAmount"
+                fill="#ef4444"
+                name="총 금액(원)"
                 radius={[4, 4, 0, 0]}
               />
             </BarChart>

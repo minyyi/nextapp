@@ -11,7 +11,7 @@ export function Auth() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${process.env.NEXT_PUBLIC_API_URL}/auth/callback`,
+          redirectTo: `http://localhost:3000/auth/callback`,
         },
       });
       if (error) throw error;
